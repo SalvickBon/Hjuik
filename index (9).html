@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>the games index - Agregador de Videojuegos para Argentina</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0e0e0e;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --accent-red: #8b2635;
+            --accent-red-light: #a83242;
+            --accent-green: #2d5a3d;
+            --border-color: #333333;
+        }
+        
+        .light-mode {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8e8e8;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-muted: #888888;
+            --border-color: #dddddd;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--accent-red); border-radius: 3px; }
+        
+        .game-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .game-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(139, 38, 53, 0.3); }
+        
+        .search-suggestion { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .tag { transition: all 0.2s; }
+        .tag:hover { background-color: var(--accent-red); color: white; }
+        
+        .price-history-chart { background: linear-gradient(180deg, rgba(139,38,53,0.1) 0%, transparent 100%); }
+        
+        .loader { border: 3px solid var(--bg-tertiary); border-top: 3px solid var(--accent-red); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .modal-overlay { backdrop-filter: blur(8px); }
+        
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* AdSense placeholder styles */
+        .adsense-banner { 
+            background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%);
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen scrollbar-thin">
+    <!-- Header fijo -->
+    <header id="mainHeader" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo y Mascota -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
+                    <h1 class="font-serif text-2xl tracking-wide" style="color: var(--accent-red);">the games index</h1>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Beethoven.jpg/220px-Beethoven.jpg" 
+                         alt="Beethoven - Mascota" 
+                         class="w-10 h-10 rounded-full object-cover border-2" 
+                         style="border-color: var(--accent-red);"
+                         title="Beethoven, nuestra mascota">
+                </div>
+                
+                <!-- Navegación principal -->
+                <nav class="hidden lg:flex items-center gap-6 text-sm">
+                    <a href="#" onclick="showSection('home')" class="hover:text-white transition" style="color: var(--text-secondary);">Inicio</a>
+                    <a href="#" onclick="showSection('free')" class="hover:text-white transition" style="color: var(--text-secondary);">Juegos Gratis</a>
+                    <a href="#" onclick="showSection('paid')" class="hover:text-white transition" style="color: var(--text-secondary);">Juegos Pagos</a>
+                    <a href="#" onclick="showSection('offers')" class="hover:text-white transition flex items-center gap-1" style="color: var(--text-secondary);">
+                        <span class="pulse-dot w-2 h-2 rounded-full bg-green-500"></span> Ofertas
+                    </a>
+                    <a href="#" onclick="showSection('argentina')" class="hover:text-white transition" style="color: var(--text-secondary);">🇦🇷 Devs Argentinos</a>
+                    <a href="#" onclick="showSection('ranking')" class="hover:text-white transition" style="color: var(--text-secondary);">📊 Ranking</a>
+                </nav>
+                
+                <!-- Controles derecha -->
+                <div class="flex items-center gap-4">
+                    <!-- Toggle tema -->
+                    <button onclick="toggleTheme()" class="p-2 rounded-lg transition hover:bg-opacity-20" style="background-color: var(--bg-tertiary);" title="Cambiar tema">
+                        <i id="themeIcon" class="fas fa-moon" style="color: var(--text-secondary);"></i>
+                    </button>
+                    
+                    <!-- Selector de región -->
+                    <select id="regionSelector" onchange="changeRegion()" class="text-sm px-3 py-1.5 rounded border cursor-pointer" style="background-color: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary);">
+                        <option value="AR">🇦🇷 Argentina</option>
+                        <option value="US">🇺🇸 Estados Unidos</option>
+                    </select>
+                    
+                    <!-- Login -->
+                    <button onclick="showLoginModal()" class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded text-sm transition" style="background-color: var(--accent-red); color: white;">
+                        <i class="fas fa-user"></i> Ingresar
+                    </button>
+                    
+                    <!-- Menu móvil -->
+                    <button onclick="toggleMobileMenu()" class="lg:hidden p-2">
+                        <i class="fas fa-bars text-xl" style="color: var(--text-primary);"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menú móvil -->
+        <div id="mobileMenu" class="hidden lg:hidden py-4 px-4 border-t" style="border-color: var(--border-color); background-color: var(--bg-secondary);">
+            <nav class="flex flex-col gap-3">
+                <a href="#" onclick="showSection('home'); toggleMobileMenu();" class="py-2" style="color: var(--text-secondary);">Inicio</a>
+                <a href="#" onclick="showSection('free'); toggleMobileMenu();" class="py-2" style="color: var(--text-secondary);">Juegos Gratis</a>
+                <a href="#" onclick="showSection('paid'); toggleMobileMenu();" class="py-2" style="color: var(--text-secondary);">Juegos Pagos</a>
+                <a href="#" onclick="showSection('offers'); toggleMobileMenu();" class="py-2" style="color: var(--text-secondary);">Ofertas</a>
+                <a href="#" onclick="showSection('argentina'); toggleMobileMenu();" class="py-2" style="color: var(--text-secondary);">🇦🇷 Devs Argentinos</a>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Banner AdSense superior (placeholder) -->
+    <div class="pt-16">
+        <div class="adsense-banner h-12 flex items-center justify-center text-xs" style="color: var(--text-muted);">
+            <!-- Google AdSense Code - Reemplazar con ID real -->
+            <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto"></ins> -->
+            <span>Espacio publicitario • Google AdSense</span>
+        </div>
+    </div>
+    
+    <!-- Contenido principal -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Hero / Búsqueda principal -->
+        <section id="heroSection" class="text-center py-12">
+            <h2 class="text-4xl md:text-5xl font-serif mb-4" style="color: var(--text-primary);">
+                Encontrá tu próximo juego
+            </h2>
+            <p class="text-lg mb-8" style="color: var(--text-secondary);">
+                Precios reales con impuestos argentinos incluidos • Todas las tiendas en un solo lugar
+            </p>
+            
+            <!-- Barra de búsqueda -->
+            <div class="relative max-w-2xl mx-auto">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="mainSearch" 
+                        placeholder="Buscar juegos, géneros, desarrolladores..." 
+                        class="w-full px-6 py-4 pr-14 text-lg rounded-xl border-2 focus:outline-none transition"
+                        style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);"
+                        oninput="handleSearch(this.value)"
+                        onfocus="showSearchSuggestions()"
+                        onblur="setTimeout(() => hideSearchSuggestions(), 200)"
+                    >
+                    <button class="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-lg transition" style="background-color: var(--accent-red);">
+                        <i class="fas fa-search text-white"></i>
+                    </button>
+                </div>
+                
+                <!-- Sugerencias de búsqueda -->
+                <div id="searchSuggestions" class="hidden absolute left-0 right-0 top-full mt-2 rounded-xl shadow-2xl border overflow-hidden z-40" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+                    <div class="p-2">
+                        <div class="text-xs font-semibold px-3 py-2" style="color: var(--text-muted);">BÚSQUEDAS POPULARES</div>
+                        <div id="suggestionsList"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tags rápidos -->
+            <div class="flex flex-wrap justify-center gap-2 mt-6">
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('Action')">Acción</span>
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('RPG')">RPG</span>
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('Indie')">Indie</span>
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('Free')">Gratis</span>
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('Multiplayer')">Multijugador</span>
+                <span class="tag px-3 py-1 rounded-full text-sm cursor-pointer transition" style="background-color: var(--bg-tertiary); color: var(--text-secondary);" onclick="filterByTag('LowSpec')">🖥️ Corre en tostadora</span>
+            </div>
+        </section>
+        
+        <!-- Indicador de precios en vivo -->
+        <div class="flex items-center justify-center gap-4 py-4 mb-8 rounded-lg" style="background-color: var(--bg-secondary);">
+            <div class="flex items-center gap-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-green-500"></span>
+                <span class="text-sm" style="color: var(--text-secondary);">Precios en vivo</span>
+            </div>
+            <span class="text-sm" style="color: var(--text-muted);">|</span>
+            <div class="text-sm" style="color: var(--text-secondary);">
+                <span id="currentDollarRate">USD Blue: $1.250</span> • 
+                <span>IVA 21% + PAIS 30% + Perc. 35% = <strong style="color: var(--accent-red);">86% impuestos</strong></span>
+            </div>
+            <span class="text-sm" style="color: var(--text-muted);">|</span>
+            <span class="text-xs" style="color: var(--text-muted);">Actualizado: <span id="lastUpdate">hace 5 min</span></span>
+        </div>
+        
+        <!-- Tabs principales -->
+        <div class="flex gap-4 mb-8 border-b" style="border-color: var(--border-color);">
+            <button id="tabFree" onclick="switchTab('free')" class="px-6 py-3 font-medium transition border-b-2" style="border-color: var(--accent-red); color: var(--text-primary);">
+                🎮 Juegos Gratuitos
+            </button>
+            <button id="tabPaid" onclick="switchTab('paid')" class="px-6 py-3 font-medium transition border-b-2 border-transparent" style="color: var(--text-secondary);">
+                💰 Juegos Pagos
+            </button>
+        </div>
+        
+        <!-- Panel de filtros -->
+        <div id="filtersPanel" class="mb-8 p-6 rounded-xl" style="background-color: var(--bg-secondary);">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold" style="color: var(--text-primary);">Filtros Avanzados</h3>
+                <button onclick="clearFilters()" class="text-sm transition" style="color: var(--accent-red);">Limpiar todo</button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Género -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Género</label>
+                    <select id="filterGenre" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="">Todos</option>
+                        <option value="action">Acción</option>
+                        <option value="adventure">Aventura</option>
+                        <option value="rpg">RPG</option>
+                        <option value="strategy">Estrategia</option>
+                        <option value="simulation">Simulación</option>
+                        <option value="sports">Deportes</option>
+                        <option value="racing">Carreras</option>
+                        <option value="puzzle">Puzzle</option>
+                        <option value="horror">Terror</option>
+                        <option value="platformer">Plataformas</option>
+                        <option value="shooter">Shooter</option>
+                        <option value="fighting">Lucha</option>
+                        <option value="roguelike">Roguelike</option>
+                        <option value="metroidvania">Metroidvania</option>
+                        <option value="souls-like">Souls-like</option>
+                    </select>
+                </div>
+                
+                <!-- Tipo de jugador -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Tipo de jugador</label>
+                    <select id="filterPlayerType" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="">Todos</option>
+                        <option value="casual">Casual</option>
+                        <option value="hardcore">Hardcore</option>
+                        <option value="competitive">Competitivo</option>
+                        <option value="speedrunner">Speedrunner</option>
+                    </select>
+                </div>
+                
+                <!-- Jugadores -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Jugadores</label>
+                    <select id="filterPlayers" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="">Todos</option>
+                        <option value="single">Un jugador</option>
+                        <option value="local-coop">Coop local</option>
+                        <option value="online-coop">Coop online</option>
+                        <option value="multiplayer">Multijugador</option>
+                        <option value="mmo">MMO</option>
+                    </select>
+                </div>
+                
+                <!-- Requisitos PC -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Requisitos PC</label>
+                    <select id="filterSpecs" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="">Todos</option>
+                        <option value="potato">🥔 Corre en tostadora</option>
+                        <option value="low">📟 Gama baja</option>
+                        <option value="medium">💻 Gama media</option>
+                        <option value="high">🖥️ Gama alta</option>
+                        <option value="ultra">🚀 Última generación</option>
+                    </select>
+                </div>
+                
+                <!-- Soporte español -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Idioma</label>
+                    <select id="filterLanguage" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="">Todos</option>
+                        <option value="spanish-full">Español completo</option>
+                        <option value="spanish-subs">Español subtítulos</option>
+                        <option value="latam">Español LATAM</option>
+                        <option value="english">Solo inglés</option>
+                    </select>
+                </div>
+                
+                <!-- Ordenar -->
+                <div>
+                    <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Ordenar por</label>
+                    <select id="filterSort" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <option value="relevance">Relevancia</option>
+                        <option value="price-asc">Precio: menor a mayor</option>
+                        <option value="price-desc">Precio: mayor a menor</option>
+                        <option value="discount">Mayor descuento</option>
+                        <option value="name">Nombre A-Z</option>
+                        <option value="release">Más recientes</option>
+                        <option value="rating">Mejor valorados</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Filtros adicionales expandibles -->
+            <div class="mt-4">
+                <button onclick="toggleAdvancedFilters()" class="text-sm flex items-center gap-2" style="color: var(--accent-red);">
+                    <i id="advFiltersIcon" class="fas fa-chevron-down text-xs"></i>
+                    Más filtros
+                </button>
+                <div id="advancedFilters" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4 pt-4 border-t" style="border-color: var(--border-color);">
+                    <div>
+                        <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Año</label>
+                        <select id="filterYear" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                            <option value="">Todos</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2010s">2010-2019</option>
+                            <option value="2000s">2000-2009</option>
+                            <option value="retro">Antes del 2000</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Motor gráfico</label>
+                        <select id="filterEngine" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                            <option value="">Todos</option>
+                            <option value="unreal">Unreal Engine</option>
+                            <option value="unity">Unity</option>
+                            <option value="godot">Godot</option>
+                            <option value="source">Source</option>
+                            <option value="cryengine">CryEngine</option>
+                            <option value="custom">Propio</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Dificultad</label>
+                        <select id="filterDifficulty" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                            <option value="">Todas</option>
+                            <option value="easy">Fácil</option>
+                            <option value="medium">Media</option>
+                            <option value="hard">Difícil</option>
+                            <option value="extreme">Extrema</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Tienda</label>
+                        <select id="filterStore" onchange="applyFilters()" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                            <option value="">Todas</option>
+                            <option value="steam">Steam</option>
+                            <option value="epic">Epic Games</option>
+                            <option value="gog">GOG</option>
+                            <option value="humble">Humble Bundle</option>
+                            <option value="itchio">itch.io</option>
+                            <option value="gmg">Green Man Gaming</option>
+                            <option value="fanatical">Fanatical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Precio máximo (ARS)</label>
+                        <input type="number" id="filterMaxPrice" onchange="applyFilters()" placeholder="Ej: 5000" class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                    </div>
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="filterOnSale" onchange="applyFilters()" class="w-4 h-4 rounded" style="accent-color: var(--accent-red);">
+                            <span class="text-sm" style="color: var(--text-secondary);">Solo ofertas</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resultados - Juegos Gratuitos -->
+        <section id="freeGamesSection">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-serif" style="color: var(--text-primary);">🎮 Juegos 100% Gratuitos</h2>
+                <span class="text-sm" style="color: var(--text-muted);"><span id="freeCount">0</span> juegos encontrados</span>
+            </div>
+            <div id="freeGamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Los juegos se cargan dinámicamente -->
+            </div>
+        </section>
+        
+        <!-- Resultados - Juegos Pagos -->
+        <section id="paidGamesSection" class="hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-serif" style="color: var(--text-primary);">💰 Juegos Pagos - Mejores Precios</h2>
+                <span class="text-sm" style="color: var(--text-muted);"><span id="paidCount">0</span> juegos encontrados</span>
+            </div>
+            <div id="paidGamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Los juegos se cargan dinámicamente -->
+            </div>
+        </section>
+        
+        <!-- Sección Ofertas -->
+        <section id="offersSection" class="hidden">
+            <h2 class="text-2xl font-serif mb-6" style="color: var(--text-primary);">🔥 Ofertas y Gratis Semanales</h2>
+            
+            <!-- Gratis esta semana -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                    <span class="px-2 py-1 rounded text-xs text-white" style="background-color: var(--accent-green);">GRATIS</span>
+                    Gratis esta semana en tiendas oficiales
+                </h3>
+                <div id="weeklyFreeGames" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Carga dinámica -->
+                </div>
+            </div>
+            
+            <!-- Mejores ofertas -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">🏷️ Mejores descuentos ahora mismo</h3>
+                <div id="bestDeals" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Carga dinámica -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección Devs Argentinos -->
+        <section id="argentinaSection" class="hidden">
+            <h2 class="text-2xl font-serif mb-2" style="color: var(--text-primary);">🇦🇷 Desarrolladores Argentinos</h2>
+            <p class="mb-6" style="color: var(--text-secondary);">Apoyemos el talento local. Estos juegos fueron creados por estudios y desarrolladores de Argentina.</p>
+            <div id="argentinaGamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Carga dinámica -->
+            </div>
+        </section>
+        
+        <!-- Sección Ranking -->
+        <section id="rankingSection" class="hidden">
+            <h2 class="text-2xl font-serif mb-6" style="color: var(--text-primary);">📊 Ranking Semanal Argentina</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="p-6 rounded-xl" style="background-color: var(--bg-secondary);">
+                    <h3 class="font-semibold mb-4" style="color: var(--text-primary);">🔍 Más buscados</h3>
+                    <div id="mostSearched" class="space-y-3">
+                        <!-- Carga dinámica -->
+                    </div>
+                </div>
+                <div class="p-6 rounded-xl" style="background-color: var(--bg-secondary);">
+                    <h3 class="font-semibold mb-4" style="color: var(--text-primary);">💸 Mejor relación calidad/precio</h3>
+                    <div id="bestValue" class="space-y-3">
+                        <!-- Carga dinámica -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Banner AdSense inferior -->
+    <div class="max-w-7xl mx-auto px-4 mb-8">
+        <div class="adsense-banner h-24 flex items-center justify-center text-xs rounded-lg" style="color: var(--text-muted);">
+            <!-- Google AdSense Code - Reemplazar con ID real -->
+            <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto"></ins> -->
+            <span>Espacio publicitario • Google AdSense</span>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="border-t py-12" style="background-color: var(--bg-secondary); border-color: var(--border-color);">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Columna 1: Logo y descripción -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <h3 class="font-serif text-xl" style="color: var(--accent-red);">the games index</h3>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Beethoven.jpg/220px-Beethoven.jpg" alt="Beethoven" class="w-8 h-8 rounded-full object-cover">
+                    </div>
+                    <p class="text-sm mb-4" style="color: var(--text-secondary);">
+                        Somos solo un índice de enlaces. Recomendamos comprar siempre en tiendas oficiales.
+                    </p>
+                    <p class="text-sm" style="color: var(--text-muted);">
+                        📧 <a href="mailto:hola@thegamesindex.ar" style="color: var(--accent-red);">hola@thegamesindex.ar</a>
+                    </p>
+                </div>
+                
+                <!-- Columna 2: Redes y donaciones -->
+                <div>
+                    <h4 class="font-semibold mb-4" style="color: var(--text-primary);">Apoyanos ☕</h4>
+                    <div class="flex flex-col gap-3">
+                        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm transition hover:opacity-80" style="background-color: #0070ba; color: white;">
+                            <i class="fab fa-paypal"></i> Regálame un cafecito (PayPal)
+                        </a>
+                        <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm transition hover:opacity-80" style="background-color: #00bcff; color: white;">
+                            <i class="fas fa-wallet"></i> Cafecito (Mercado Pago)
+                        </a>
+                    </div>
+                    <div class="flex gap-4 mt-4">
+                        <a href="#" style="color: var(--text-secondary);" class="hover:text-white transition"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" style="color: var(--text-secondary);" class="hover:text-white transition"><i class="fab fa-discord text-xl"></i></a>
+                        <a href="#" style="color: var(--text-secondary);" class="hover:text-white transition"><i class="fab fa-github text-xl"></i></a>
+                        <a href="#" style="color: var(--text-secondary);" class="hover:text-white transition"><i class="fab fa-instagram text-xl"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Apps recomendadas -->
+                <div>
+                    <h4 class="font-semibold mb-4" style="color: var(--text-primary);">Apps recomendadas por el dev</h4>
+                    <p class="text-xs mb-3" style="color: var(--text-muted);">¡Disfrútenlo!</p>
+                    <div class="space-y-2 text-sm" style="color: var(--text-secondary);">
+                        <a href="https://isthereanydeal.com" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                            <span>📊</span> IsThereAnyDeal
+                        </a>
+                        <a href="https://steamdb.info" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                            <span>🔍</span> SteamDB
+                        </a>
+                        <a href="https://protondb.com" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                            <span>🐧</span> ProtonDB
+                        </a>
+                        <a href="https://howlongtobeat.com" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                            <span>⏱️</span> HowLongToBeat
+                        </a>
+                        <a href="https://pcgamingwiki.com" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                            <span>📖</span> PCGamingWiki
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Columna 4: Región y alertas -->
+                <div>
+                    <h4 class="font-semibold mb-4" style="color: var(--text-primary);">Configuración</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs mb-1 block" style="color: var(--text-muted);">Región</label>
+                            <select class="w-full px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);" onchange="changeRegion(this.value)">
+                                <option value="AR">🇦🇷 Argentina</option>
+                                <option value="US">🇺🇸 Estados Unidos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs mb-1 block" style="color: var(--text-muted);">Alertas de ofertas</label>
+                            <div class="flex gap-2">
+                                <input type="email" placeholder="tu@email.com" class="flex-1 px-3 py-2 rounded text-sm" style="background-color: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <button class="px-4 py-2 rounded text-sm" style="background-color: var(--accent-red); color: white;">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t mt-8 pt-8 text-center text-sm" style="border-color: var(--border-color); color: var(--text-muted);">
+                <p>© 2024 the games index. Hecho con ❤️ en Argentina.</p>
+                <p class="mt-2">Los precios mostrados son estimativos e incluyen impuestos argentinos vigentes (IVA 21% + Impuesto PAIS 30% + Percepción 35%).</p>
+                <p class="mt-1">Datos obtenidos de APIs públicas oficiales. No nos hacemos responsables por diferencias en los precios finales.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modal de detalle del juego -->
+    <div id="gameDetailModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" style="background-color: rgba(0,0,0,0.8);" onclick="closeGameModal()"></div>
+        <div class="relative max-w-5xl mx-auto mt-10 max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-thin" style="background-color: var(--bg-secondary);">
+            <button onclick="closeGameModal()" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--bg-tertiary);">
+                <i class="fas fa-times" style="color: var(--text-primary);"></i>
+            </button>
+            <div id="gameDetailContent">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Login -->
+    <div id="loginModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" style="background-color: rgba(0,0,0,0.8);" onclick="closeLoginModal()"></div>
+        <div class="relative max-w-md mx-auto mt-20 p-8 rounded-2xl" style="background-color: var(--bg-secondary);">
+            <h3 class="text-xl font-serif mb-6" style="color: var(--text-primary);">Ingresá a tu cuenta</h3>
+            <div class="space-y-4">
+                <button class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border transition hover:bg-opacity-10" style="border-color: var(--border-color); color: var(--text-primary);">
+                    <i class="fab fa-google text-xl"></i> Continuar con Google
+                </button>
+                <button class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg transition" style="background-color: #5865F2; color: white;">
+                    <i class="fab fa-discord text-xl"></i> Continuar con Discord
+                </button>
+            </div>
+            <p class="text-center text-sm mt-6" style="color: var(--text-muted);">
+                Al ingresar podés guardar tu colección, recibir alertas y más.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // THE GAMES INDEX - SISTEMA COMPLETO
+        // Versión: 1.0.0
+        // Autor: the games index team
+        // ============================================
+
+        // ============================================
+        // CONFIGURACIÓN GLOBAL
+        // ============================================
+        const CONFIG = {
+            region: 'AR',
+            currency: 'ARS',
+            dollarBlue: 1250, // Precio del dólar blue (actualizar con API real)
+            dollarOficial: 980,
+            taxes: {
+                iva: 0.21,
+                pais: 0.30,
+                percepcion: 0.35
+            },
+            // APIs oficiales (comentadas - implementar con credenciales reales)
+            apis: {
+                steam: 'https://store.steampowered.com/api/',
+                itad: 'https://api.isthereanydeal.com/',
+                rawg: 'https://api.rawg.io/api/',
+                cheapshark: 'https://www.cheapshark.com/api/1.0/'
+            }
+        };
+
+        // ============================================
+        // BASE DE DATOS DE JUEGOS GRATUITOS (ESTÁTICA)
+        // ============================================
+        const FREE_GAMES_DATABASE = [
+            {
+                id: 'f1',
+                title: 'OpenMW (Morrowind Engine)',
+                description: 'Motor de juego open source que permite jugar The Elder Scrolls III: Morrowind con mejoras modernas. Requiere los archivos originales del juego.',
+                image: 'https://openmw.org/images/screenshots/screenshot-01.jpg',
+                genre: ['rpg', 'adventure'],
+                tags: ['Open Source', 'RPG', 'Fantasía', 'Modding'],
+                players: 'single',
+                specs: 'potato',
+                language: 'english',
+                year: 2023,
+                engine: 'custom',
+                difficulty: 'hard',
+                developer: 'OpenMW Team',
+                playerType: 'hardcore',
+                downloadUrl: 'https://openmw.org/downloads/',
+                isOpenSource: true,
+                rating: 4.8
+            },
+            {
+                id: 'f2',
+                title: 'The Battle for Wesnoth',
+                description: 'Juego de estrategia por turnos con campañas épicas de fantasía. Completamente gratuito y de código abierto.',
+                image: 'https://www.wesnoth.org/images/start-2.png',
+                genre: ['strategy'],
+                tags: ['Estrategia', 'Por turnos', 'Fantasía', 'Open Source'],
+                players: 'multiplayer',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2022,
+                engine: 'custom',
+                difficulty: 'medium',
+                developer: 'Wesnoth Team',
+                playerType: 'casual',
+                downloadUrl: 'https://www.wesnoth.org/downloads/',
+                isOpenSource: true,
+                rating: 4.5
+            },
+            {
+                id: 'f3',
+                title: 'SuperTuxKart',
+                description: 'Juego de carreras de karts 3D con personajes de mascota open source. Diversión para toda la familia.',
+                image: 'https://supertuxkart.net/images/1/1e/Supertuxkart-0.9.1-screenshot-3.jpg',
+                genre: ['racing'],
+                tags: ['Carreras', 'Karts', 'Multijugador local', 'Familiar'],
+                players: 'local-coop',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'custom',
+                difficulty: 'easy',
+                developer: 'SuperTuxKart Team',
+                playerType: 'casual',
+                downloadUrl: 'https://supertuxkart.net/Download',
+                isOpenSource: true,
+                rating: 4.3
+            },
+            {
+                id: 'f4',
+                title: '0 A.D.',
+                description: 'Juego de estrategia en tiempo real histórico. Construye imperios desde los antiguos griegos hasta Roma.',
+                image: 'https://play0ad.com/wp-content/gallery/0-a-d-alpha-26-screenshots/0ad_alpha26_carthage_vs_macedon.png',
+                genre: ['strategy'],
+                tags: ['RTS', 'Histórico', 'Base building', 'Open Source'],
+                players: 'multiplayer',
+                specs: 'medium',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'pyrogenesis',
+                difficulty: 'medium',
+                developer: 'Wildfire Games',
+                playerType: 'hardcore',
+                downloadUrl: 'https://play0ad.com/download/',
+                isOpenSource: true,
+                rating: 4.6
+            },
+            {
+                id: 'f5',
+                title: 'Xonotic',
+                description: 'FPS arena shooter extremadamente rápido. Heredero espiritual de Quake y Unreal Tournament.',
+                image: 'https://xonotic.org/m/uploads/2021/11/xonotic-1024x576.jpg',
+                genre: ['shooter'],
+                tags: ['FPS', 'Arena', 'Competitivo', 'Open Source'],
+                players: 'multiplayer',
+                specs: 'low',
+                language: 'english',
+                year: 2022,
+                engine: 'darkplaces',
+                difficulty: 'hard',
+                developer: 'Team Xonotic',
+                playerType: 'competitive',
+                downloadUrl: 'https://xonotic.org/download/',
+                isOpenSource: true,
+                rating: 4.4
+            },
+            {
+                id: 'f6',
+                title: 'FreeCiv',
+                description: 'Clon open source de Civilization. Estrategia por turnos épica desde la antigüedad hasta la era espacial.',
+                image: 'https://freeciv.org/images/freeciv-screenshot-1.png',
+                genre: ['strategy'],
+                tags: ['4X', 'Por turnos', 'Civilización', 'Open Source'],
+                players: 'multiplayer',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'custom',
+                difficulty: 'hard',
+                developer: 'Freeciv Team',
+                playerType: 'hardcore',
+                downloadUrl: 'https://freeciv.org/download/',
+                isOpenSource: true,
+                rating: 4.2
+            },
+            {
+                id: 'f7',
+                title: 'Minetest',
+                description: 'Motor de juego tipo Minecraft completamente libre. Miles de mods y juegos disponibles.',
+                image: 'https://www.minetest.net/media/gallery/1.jpg',
+                genre: ['simulation', 'adventure'],
+                tags: ['Sandbox', 'Voxel', 'Construcción', 'Modding'],
+                players: 'multiplayer',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'minetest',
+                difficulty: 'easy',
+                developer: 'Minetest Team',
+                playerType: 'casual',
+                downloadUrl: 'https://www.minetest.net/downloads/',
+                isOpenSource: true,
+                rating: 4.5
+            },
+            {
+                id: 'f8',
+                title: 'Endless Sky',
+                description: 'Exploración espacial y comercio al estilo Escape Velocity. Universo abierto con historia profunda.',
+                image: 'https://endless-sky.github.io/images/screenshots/battle.jpg',
+                genre: ['adventure', 'rpg'],
+                tags: ['Espacial', 'Exploración', 'Comercio', 'Indie'],
+                players: 'single',
+                specs: 'potato',
+                language: 'english',
+                year: 2022,
+                engine: 'custom',
+                difficulty: 'medium',
+                developer: 'Michael Zahniser',
+                playerType: 'casual',
+                downloadUrl: 'https://endless-sky.github.io/',
+                isOpenSource: true,
+                rating: 4.4
+            },
+            {
+                id: 'f9',
+                title: 'Warzone 2100',
+                description: 'RTS clásico de 1999 liberado como open source. Campaña completa y multijugador.',
+                image: 'https://wz2100.net/img/screenshots/screenshot-1.jpg',
+                genre: ['strategy'],
+                tags: ['RTS', 'Ciencia ficción', 'Clásico', 'Retro'],
+                players: 'multiplayer',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'warzone',
+                difficulty: 'medium',
+                developer: 'Warzone 2100 Project',
+                playerType: 'hardcore',
+                downloadUrl: 'https://wz2100.net/',
+                isOpenSource: true,
+                rating: 4.3
+            },
+            {
+                id: 'f10',
+                title: 'Cave Story (Doukutsu)',
+                description: 'Obra maestra indie de plataformas. Una de las joyas freeware más influyentes de la historia.',
+                image: 'https://i.imgur.com/JGxKQNm.png',
+                genre: ['platformer', 'adventure'],
+                tags: ['Metroidvania', 'Pixel art', 'Indie clásico', 'Historia'],
+                players: 'single',
+                specs: 'potato',
+                language: 'spanish-subs',
+                year: 2004,
+                engine: 'custom',
+                difficulty: 'medium',
+                developer: 'Daisuke Amaya (Pixel)',
+                playerType: 'casual',
+                downloadUrl: 'https://www.cavestory.org/download/cave-story.php',
+                isFreeware: true,
+                rating: 4.9
+            },
+            {
+                id: 'f11',
+                title: 'OpenTTD',
+                description: 'Simulador de transporte open source basado en Transport Tycoon Deluxe. Extremadamente adictivo.',
+                image: 'https://www.openttd.org/static/img/screenshots/1.11/huge-network.png',
+                genre: ['simulation', 'strategy'],
+                tags: ['Tycoon', 'Transporte', 'Económico', 'Estrategia'],
+                players: 'multiplayer',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'custom',
+                difficulty: 'medium',
+                developer: 'OpenTTD Team',
+                playerType: 'casual',
+                downloadUrl: 'https://www.openttd.org/downloads/openttd-releases/latest',
+                isOpenSource: true,
+                rating: 4.7
+            },
+            {
+                id: 'f12',
+                title: 'Dwarf Fortress (Classic)',
+                description: 'El legendario simulador de colonias enanas. Generación procedural épica. La versión clásica es gratis.',
+                image: 'https://i.imgur.com/rYn0ZfR.png',
+                genre: ['simulation', 'roguelike'],
+                tags: ['Colonias', 'Procedural', 'Complejo', 'Legendario'],
+                players: 'single',
+                specs: 'low',
+                language: 'english',
+                year: 2022,
+                engine: 'custom',
+                difficulty: 'extreme',
+                developer: 'Bay 12 Games',
+                playerType: 'hardcore',
+                downloadUrl: 'https://www.bay12games.com/dwarves/',
+                isFreeware: true,
+                rating: 4.8
+            }
+        ];
+
+        // ============================================
+        // BASE DE DATOS DE JUEGOS PAGOS (SIMULADA)
+        // En producción: usar APIs reales
+        // ============================================
+        const PAID_GAMES_DATABASE = [
+            {
+                id: 'p1',
+                title: 'Elden Ring',
+                description: 'El aclamado RPG de acción de FromSoftware y George R.R. Martin. Explora un vasto mundo abierto lleno de peligros y misterios.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg',
+                genre: ['rpg', 'action'],
+                tags: ['Souls-like', 'Mundo abierto', 'Fantasía oscura', 'Difícil'],
+                players: 'multiplayer',
+                specs: 'high',
+                language: 'spanish-subs',
+                year: 2022,
+                engine: 'custom',
+                difficulty: 'extreme',
+                developer: 'FromSoftware',
+                publisher: 'Bandai Namco',
+                playerType: 'hardcore',
+                rating: 4.9,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 59.99, url: 'https://store.steampowered.com/app/1245620/ELDEN_RING/', discount: 0 },
+                    { name: 'Humble', price: 59.99, url: 'https://www.humblebundle.com/store/elden-ring', discount: 0 },
+                    { name: 'GMG', price: 53.99, url: 'https://www.greenmangaming.com/', discount: 10 },
+                    { name: 'Fanatical', price: 56.99, url: 'https://www.fanatical.com/', discount: 5 }
+                ],
+                priceHistory: [59.99, 59.99, 53.99, 47.99, 59.99, 59.99]
+            },
+            {
+                id: 'p2',
+                title: 'Baldur\'s Gate 3',
+                description: 'El RPG definitivo de Larian Studios. Aventuras épicas basadas en D&D con decisiones que importan.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg',
+                genre: ['rpg', 'adventure'],
+                tags: ['CRPG', 'D&D', 'Por turnos', 'Historia profunda'],
+                players: 'online-coop',
+                specs: 'high',
+                language: 'spanish-full',
+                year: 2023,
+                engine: 'divinity',
+                difficulty: 'medium',
+                developer: 'Larian Studios',
+                publisher: 'Larian Studios',
+                playerType: 'hardcore',
+                rating: 4.95,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 59.99, url: 'https://store.steampowered.com/app/1086940/Baldurs_Gate_3/', discount: 0 },
+                    { name: 'GOG', price: 59.99, url: 'https://www.gog.com/game/baldurs_gate_iii', discount: 0 }
+                ],
+                priceHistory: [59.99, 59.99, 59.99, 59.99, 59.99, 59.99]
+            },
+            {
+                id: 'p3',
+                title: 'Hollow Knight',
+                description: 'Metroidvania sublime con arte dibujado a mano. Explora las profundidades de Hallownest.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg',
+                genre: ['metroidvania', 'platformer'],
+                tags: ['Indie', 'Metroidvania', 'Difícil', 'Atmósfera'],
+                players: 'single',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2017,
+                engine: 'unity',
+                difficulty: 'hard',
+                developer: 'Team Cherry',
+                publisher: 'Team Cherry',
+                playerType: 'hardcore',
+                rating: 4.9,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 14.99, url: 'https://store.steampowered.com/app/367520/Hollow_Knight/', discount: 50 },
+                    { name: 'GOG', price: 14.99, url: 'https://www.gog.com/game/hollow_knight', discount: 50 },
+                    { name: 'Humble', price: 14.99, url: 'https://www.humblebundle.com/', discount: 50 }
+                ],
+                priceHistory: [14.99, 14.99, 7.49, 14.99, 9.99, 7.49]
+            },
+            {
+                id: 'p4',
+                title: 'Hades',
+                description: 'Roguelike de acción de Supergiant Games. Escapa del inframundo griego con estilo.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg',
+                genre: ['roguelike', 'action'],
+                tags: ['Roguelike', 'Mitología', 'Narrativa', 'Acción rápida'],
+                players: 'single',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2020,
+                engine: 'custom',
+                difficulty: 'medium',
+                developer: 'Supergiant Games',
+                publisher: 'Supergiant Games',
+                playerType: 'casual',
+                rating: 4.85,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 24.99, url: 'https://store.steampowered.com/app/1145360/Hades/', discount: 40 },
+                    { name: 'Epic', price: 24.99, url: 'https://store.epicgames.com/en-US/p/hades', discount: 40 },
+                    { name: 'GOG', price: 24.99, url: 'https://www.gog.com/game/hades', discount: 40 }
+                ],
+                priceHistory: [24.99, 19.99, 14.99, 24.99, 14.99, 14.99]
+            },
+            {
+                id: 'p5',
+                title: 'Celeste',
+                description: 'Plataformero de precisión con una historia emotiva sobre superar la ansiedad.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg',
+                genre: ['platformer'],
+                tags: ['Plataformas', 'Difícil', 'Indie', 'Historia emotiva'],
+                players: 'single',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2018,
+                engine: 'custom',
+                difficulty: 'hard',
+                developer: 'Maddy Makes Games',
+                publisher: 'Maddy Makes Games',
+                playerType: 'casual',
+                rating: 4.9,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 19.99, url: 'https://store.steampowered.com/app/504230/Celeste/', discount: 75 },
+                    { name: 'itch.io', price: 19.99, url: 'https://mattmakesgames.itch.io/celeste', discount: 0 },
+                    { name: 'Epic', price: 19.99, url: 'https://store.epicgames.com/', discount: 50 }
+                ],
+                priceHistory: [19.99, 9.99, 4.99, 19.99, 9.99, 4.99]
+            },
+            {
+                id: 'p6',
+                title: 'Blasphemous',
+                description: 'Metroidvania español con estética religiosa oscura. Arte pixel impresionante.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/774361/header.jpg',
+                genre: ['metroidvania', 'action'],
+                tags: ['Souls-like', 'Pixel art', 'Gore', 'Español'],
+                players: 'single',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2019,
+                engine: 'unity',
+                difficulty: 'hard',
+                developer: 'The Game Kitchen',
+                publisher: 'Team17',
+                playerType: 'hardcore',
+                rating: 4.6,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 24.99, url: 'https://store.steampowered.com/app/774361/Blasphemous/', discount: 60 },
+                    { name: 'GOG', price: 24.99, url: 'https://www.gog.com/', discount: 60 },
+                    { name: 'Humble', price: 24.99, url: 'https://www.humblebundle.com/', discount: 50 }
+                ],
+                priceHistory: [24.99, 12.49, 9.99, 24.99, 14.99, 9.99]
+            },
+            {
+                id: 'p7',
+                title: 'Stardew Valley',
+                description: 'Simulador de granja relajante. Cultiva, pesca, explora minas y haz amigos.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/413150/header.jpg',
+                genre: ['simulation', 'rpg'],
+                tags: ['Farming', 'Relajante', 'Pixel art', 'Multijugador'],
+                players: 'online-coop',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2016,
+                engine: 'custom',
+                difficulty: 'easy',
+                developer: 'ConcernedApe',
+                publisher: 'ConcernedApe',
+                playerType: 'casual',
+                rating: 4.95,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 14.99, url: 'https://store.steampowered.com/app/413150/Stardew_Valley/', discount: 0 },
+                    { name: 'GOG', price: 14.99, url: 'https://www.gog.com/game/stardew_valley', discount: 0 },
+                    { name: 'Humble', price: 14.99, url: 'https://www.humblebundle.com/', discount: 0 }
+                ],
+                priceHistory: [14.99, 11.24, 14.99, 14.99, 11.24, 14.99]
+            },
+            {
+                id: 'p8',
+                title: 'Inscryption',
+                description: 'Juego de cartas con horror psicológico. Una experiencia inolvidable llena de secretos.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1092790/header.jpg',
+                genre: ['puzzle', 'horror'],
+                tags: ['Cartas', 'Terror', 'Indie', 'Narrativa'],
+                players: 'single',
+                specs: 'low',
+                language: 'spanish-full',
+                year: 2021,
+                engine: 'unity',
+                difficulty: 'medium',
+                developer: 'Daniel Mullins Games',
+                publisher: 'Devolver Digital',
+                playerType: 'casual',
+                rating: 4.85,
+                isArgentine: false,
+                stores: [
+                    { name: 'Steam', price: 19.99, url: 'https://store.steampowered.com/app/1092790/Inscryption/', discount: 50 },
+                    { name: 'GOG', price: 19.99, url: 'https://www.gog.com/', discount: 50 },
+                    { name: 'Epic', price: 19.99, url: 'https://store.epicgames.com/', discount: 40 }
+                ],
+                priceHistory: [19.99, 14.99, 9.99, 19.99, 12.99, 9.99]
+            },
+            // Juegos argentinos
+            {
+                id: 'ar1',
+                title: 'Cris Tales',
+                description: 'JRPG colombiano-argentino con mecánica de manipulación temporal. Arte hermoso y combate estratégico.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1079830/header.jpg',
+                genre: ['rpg'],
+                tags: ['JRPG', 'Viaje en el tiempo', 'Latinoamérica', 'Indie'],
+                players: 'single',
+                specs: 'medium',
+                language: 'spanish-latam',
+                year: 2021,
+                engine: 'unity',
+                difficulty: 'medium',
+                developer: 'Dreams Uncorporated / SYCK',
+                publisher: 'Modus Games',
+                playerType: 'casual',
+                rating: 4.0,
+                isArgentine: true,
+                stores: [
+                    { name: 'Steam', price: 39.99, url: 'https://store.steampowered.com/app/1079830/Cris_Tales/', discount: 70 },
+                    { name: 'GOG', price: 39.99, url: 'https://www.gog.com/', discount: 70 }
+                ],
+                priceHistory: [39.99, 23.99, 11.99, 39.99, 19.99, 11.99]
+            },
+            {
+                id: 'ar2',
+                title: 'Pogostuck: Rage With Your Friends',
+                description: 'Juego de plataformas frustrantemente divertido hecho en Argentina. ¡Desafía la gravedad!',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/688130/header.jpg',
+                genre: ['platformer'],
+                tags: ['Rage game', 'Difícil', 'Argentino', 'Multijugador'],
+                players: 'multiplayer',
+                specs: 'potato',
+                language: 'spanish-full',
+                year: 2019,
+                engine: 'unity',
+                difficulty: 'extreme',
+                developer: 'Max Coombs',
+                publisher: 'Max Coombs',
+                playerType: 'hardcore',
+                rating: 4.3,
+                isArgentine: true,
+                stores: [
+                    { name: 'Steam', price: 5.99, url: 'https://store.steampowered.com/app/688130/Pogostuck_Rage_With_Your_Friends/', discount: 0 }
+                ],
+                priceHistory: [5.99, 4.19, 2.99, 5.99, 4.19, 5.99]
+            },
+            {
+                id: 'ar3',
+                title: 'The Textorcist: The Story of Ray Bibbia',
+                description: 'Mezcla única de bullet hell y typing game. Hecho por el estudio argentino Morbidware.',
+                image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/940680/header.jpg',
+                genre: ['action', 'puzzle'],
+                tags: ['Typing', 'Bullet hell', 'Argentino', 'Exorcismo'],
+                players: 'single',
+                specs: 'low',
+                language: 'english',
+                year: 2019,
+                engine: 'unity',
+                difficulty: 'hard',
+                developer: 'Morbidware',
+                publisher: 'Headup Games',
+                playerType: 'hardcore',
+                rating: 4.5,
+                isArgentine: true,
+                stores: [
+                    { name: 'Steam', price: 14.99, url: 'https://store.steampowered.com/app/940680/The_Textorcist_The_Story_of_Ray_Bibbia/', discount: 75 },
+                    { name: 'GOG', price: 14.99, url: 'https://www.gog.com/', discount: 75 }
+                ],
+                priceHistory: [14.99, 7.49, 3.74, 14.99, 7.49, 3.74]
+            }
+        ];
+
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+        
+        /**
+         * Calcula el precio final en ARS con impuestos argentinos
+         * @param {number} priceUSD - Precio en dólares
+         * @param {number} discount - Porcentaje de descuento
+         * @returns {object} - Precio final y detalles
+         */
+        function calculateArgentinePrice(priceUSD, discount = 0) {
+            if (CONFIG.region === 'US') {
+                const discountedPrice = priceUSD * (1 - discount / 100);
+                return {
+                    final: discountedPrice,
+                    formatted: `$${discountedPrice.toFixed(2)} USD`,
+                    taxes: 0,
+                    taxDetails: 'Sin impuestos adicionales'
+                };
+            }
+            
+            const discountedPrice = priceUSD * (1 - discount / 100);
+            const baseARS = discountedPrice * CONFIG.dollarOficial;
+            const iva = baseARS * CONFIG.taxes.iva;
+            const pais = baseARS * CONFIG.taxes.pais;
+            const percepcion = baseARS * CONFIG.taxes.percepcion;
+            const totalTaxes = iva + pais + percepcion;
+            const finalPrice = baseARS + totalTaxes;
+            const taxPercentage = Math.round((CONFIG.taxes.iva + CONFIG.taxes.pais + CONFIG.taxes.percepcion) * 100);
+            
+            return {
+                final: finalPrice,
+                formatted: `$${Math.round(finalPrice).toLocaleString('es-AR')} ARS`,
+                taxes: taxPercentage,
+                taxDetails: `IVA 21% + PAIS 30% + Perc. 35% = ${taxPercentage}% (Aplica en todas las provincias)`,
+                basePrice: baseARS,
+                taxBreakdown: { iva, pais, percepcion }
+            };
+        }
+
+        /**
+         * Encuentra el mejor precio entre las tiendas
+         */
+        function findBestPrice(stores) {
+            let best = stores[0];
+            stores.forEach(store => {
+                const price = store.price * (1 - store.discount / 100);
+                const bestPrice = best.price * (1 - best.discount / 100);
+                if (price < bestPrice) best = store;
+            });
+            return best;
+        }
+
+        // ============================================
+        // RENDERIZADO DE COMPONENTES
+        // ============================================
+        
+        /**
+         * Genera el HTML de una tarjeta de juego gratuito
+         */
+        function renderFreeGameCard(game) {
+            const tagsHTML = game.tags.slice(0, 3).map(tag => 
+                `<span class="text-xs px-2 py-0.5 rounded" style="background-color: var(--bg-tertiary); color: var(--text-muted);">${tag}</span>`
+            ).join('');
+            
+            return `
+                <div class="game-card rounded-xl overflow-hidden cursor-pointer" style="background-color: var(--bg-secondary);" onclick="openGameDetail('free', '${game.id}')">
+                    <div class="relative">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-40 object-cover">
+                        <span class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-semibold text-white" style="background-color: var(--accent-green);">
+                            ${game.isOpenSource ? '🔓 Open Source' : '🆓 Freeware'}
+                        </span>
+                        ${game.specs === 'potato' ? '<span class="absolute top-2 right-2 text-lg" title="Corre en cualquier PC">🥔</span>' : ''}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold mb-2 line-clamp-1" style="color: var(--text-primary);">${game.title}</h3>
+                        <p class="text-sm mb-3 line-clamp-2" style="color: var(--text-secondary);">${game.description}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">${tagsHTML}</div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-star text-xs" style="color: #fbbf24;"></i>
+                                <span class="text-sm" style="color: var(--text-secondary);">${game.rating}</span>
+                            </div>
+                            <a href="${game.downloadUrl}" target="_blank" onclick="event.stopPropagation();" 
+                               class="px-3 py-1 rounded text-sm font-medium transition" 
+                               style="background-color: var(--accent-green); color: white;">
+                                Descargar gratis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Genera el HTML de una tarjeta de juego pago
+         */
+        function renderPaidGameCard(game) {
+            const bestStore = findBestPrice(game.stores);
+            const priceInfo = calculateArgentinePrice(bestStore.price, bestStore.discount);
+            const hasDiscount = bestStore.discount > 0;
+            
+            const tagsHTML = game.tags.slice(0, 3).map(tag => 
+                `<span class="text-xs px-2 py-0.5 rounded" style="background-color: var(--bg-tertiary); color: var(--text-muted);">${tag}</span>`
+            ).join('');
+            
+            return `
+                <div class="game-card rounded-xl overflow-hidden cursor-pointer" style="background-color: var(--bg-secondary);" onclick="openGameDetail('paid', '${game.id}')">
+                    <div class="relative">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-40 object-cover">
+                        ${hasDiscount ? `<span class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold text-white bg-red-600">-${bestStore.discount}%</span>` : ''}
+                        ${game.isArgentine ? '<span class="absolute top-2 right-2 text-lg" title="Desarrollador argentino">🇦🇷</span>' : ''}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold mb-2 line-clamp-1" style="color: var(--text-primary);">${game.title}</h3>
+                        <p class="text-sm mb-3 line-clamp-2" style="color: var(--text-secondary);">${game.description}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">${tagsHTML}</div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-bold" style="color: ${hasDiscount ? '#22c55e' : 'var(--text-primary)'};">${priceInfo.formatted}</div>
+                                <div class="text-xs flex items-center gap-1" style="color: var(--text-muted);">
+                                    Mejor: ${bestStore.name}
+                                    <span class="cursor-help" title="${priceInfo.taxDetails}">ℹ️</span>
+                                </div>
+                            </div>
+                            <button class="px-3 py-1 rounded text-sm font-medium transition" style="background-color: var(--accent-red); color: white;">
+                                Ver precios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Renderiza el modal de detalle del juego
+         */
+        function renderGameDetail(type, game) {
+            const isFree = type === 'free';
+            
+            // Simulamos más screenshots
+            const screenshots = [game.image, game.image, game.image];
+            
+            let storesHTML = '';
+            let priceHistoryHTML = '';
+            
+            if (!isFree) {
+                storesHTML = game.stores.map(store => {
+                    const priceInfo = calculateArgentinePrice(store.price, store.discount);
+                    return `
+                        <a href="${store.url}?ref=thegamesindex" target="_blank" 
+                           class="flex items-center justify-between p-4 rounded-lg border transition hover:border-opacity-50"
+                           style="background-color: var(--bg-tertiary); border-color: var(--border-color);">
+                            <div class="flex items-center gap-3">
+                                <span class="font-medium" style="color: var(--text-primary);">${store.name}</span>
+                                ${store.discount > 0 ? `<span class="px-2 py-0.5 rounded text-xs font-bold text-white bg-red-600">-${store.discount}%</span>` : ''}
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold" style="color: var(--text-primary);">${priceInfo.formatted}</div>
+                                <div class="text-xs" style="color: var(--text-muted);">+ ${priceInfo.taxes}% impuestos</div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+                
+                // Gráfico de historial simple (CSS-based)
+                const maxPrice = Math.max(...game.priceHistory);
+                priceHistoryHTML = `
+                    <div class="mt-6 p-4 rounded-lg" style="background-color: var(--bg-tertiary);">
+                        <h4 class="font-semibold mb-4" style="color: var(--text-primary);">📈 Historial de precios (USD)</h4>
+                        <div class="flex items-end gap-2 h-24">
+                            ${game.priceHistory.map((price, i) => {
+                                const height = (price / maxPrice) * 100;
+                                const isMin = price === Math.min(...game.priceHistory);
+                                return `
+                                    <div class="flex-1 flex flex-col items-center gap-1">
+                                        <span class="text-xs" style="color: var(--text-muted);">$${price}</span>
+                                        <div class="w-full rounded-t" style="height: ${height}%; background-color: ${isMin ? '#22c55e' : 'var(--accent-red)'};"></div>
+                                        <span class="text-xs" style="color: var(--text-muted);">M${i+1}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Últimos 6 meses • Mejor momento para comprar: cuando está en verde</p>
+                    </div>
+                `;
+            }
+            
+            // Tags HTML
+            const tagsHTML = game.tags.map(tag => 
+                `<span class="px-3 py-1 rounded-full text-sm" style="background-color: var(--bg-tertiary); color: var(--text-secondary);">${tag}</span>`
+            ).join('');
+            
+            // Specs badge
+            const specsLabels = {
+                'potato': '🥔 Corre en tostadora',
+                'low': '📟 Gama baja',
+                'medium': '💻 Gama media',
+                'high': '🖥️ Gama alta',
+                'ultra': '🚀 Última generación'
+            };
+            
+            const languageLabels = {
+                'spanish-full': '🗣️ Español completo',
+                'spanish-subs': '📝 Subtítulos en español',
+                'spanish-latam': '🗣️ Español LATAM',
+                'english': '🇬🇧 Solo inglés'
+            };
+            
+            return `
+                <div class="relative">
+                    <!-- Header image -->
+                    <div class="h-64 bg-cover bg-center" style="background-image: linear-gradient(to bottom, transparent 50%, var(--bg-secondary)), url('${game.image}');"></div>
+                    
+                    <div class="p-8">
+                        <!-- Título y badges -->
+                        <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                            <div>
+                                <h2 class="text-3xl font-serif mb-2" style="color: var(--text-primary);">${game.title}</h2>
+                                <div class="flex flex-wrap items-center gap-3 text-sm" style="color: var(--text-secondary);">
+                                    <span>${game.developer}</span>
+                                    <span>•</span>
+                                    <span>${game.year}</span>
+                                    <span>•</span>
+                                    <span class="flex items-center gap-1"><i class="fas fa-star text-yellow-400"></i> ${game.rating}</span>
+                                    ${game.isArgentine ? '<span class="px-2 py-0.5 rounded text-xs" style="background-color: #75aadb; color: white;">🇦🇷 Dev Argentino</span>' : ''}
+                                </div>
+                            </div>
+                            ${isFree ? `
+                                <a href="${game.downloadUrl}" target="_blank" class="px-6 py-3 rounded-lg font-semibold text-white transition hover:opacity-90" style="background-color: var(--accent-green);">
+                                    <i class="fas fa-download mr-2"></i> Descargar Gratis (Oficial)
+                                </a>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mb-6">${tagsHTML}</div>
+                        
+                        <!-- Info rápida -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="p-3 rounded-lg text-center" style="background-color: var(--bg-tertiary);">
+                                <div class="text-xs mb-1" style="color: var(--text-muted);">Requisitos</div>
+                                <div class="text-sm font-medium" style="color: var(--text-primary);">${specsLabels[game.specs] || game.specs}</div>
+                            </div>
+                            <div class="p-3 rounded-lg text-center" style="background-color: var(--bg-tertiary);">
+                                <div class="text-xs mb-1" style="color: var(--text-muted);">Idioma</div>
+                                <div class="text-sm font-medium" style="color: var(--text-primary);">${languageLabels[game.language] || game.language}</div>
+                            </div>
+                            <div class="p-3 rounded-lg text-center" style="background-color: var(--bg-tertiary);">
+                                <div class="text-xs mb-1" style="color: var(--text-muted);">Jugadores</div>
+                                <div class="text-sm font-medium" style="color: var(--text-primary);">${game.players}</div>
+                            </div>
+                            <div class="p-3 rounded-lg text-center" style="background-color: var(--bg-tertiary);">
+                                <div class="text-xs mb-1" style="color: var(--text-muted);">Motor</div>
+                                <div class="text-sm font-medium" style="color: var(--text-primary);">${game.engine}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Descripción -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3" style="color: var(--text-primary);">Descripción</h3>
+                            <p style="color: var(--text-secondary);">${game.description}</p>
+                        </div>
+                        
+                        ${!isFree ? `
+                            <!-- Tiendas y precios -->
+                            <div class="mb-6">
+                                <h3 class="font-semibold mb-3" style="color: var(--text-primary);">🛒 Comprar en (precios con impuestos argentinos)</h3>
+                                <div class="grid gap-3">${storesHTML}</div>
+                                ${priceHistoryHTML}
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Requisitos del sistema -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3" style="color: var(--text-primary);">💻 Requisitos del sistema</h3>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="p-4 rounded-lg" style="background-color: var(--bg-tertiary);">
+                                    <div class="font-medium mb-2" style="color: var(--text-primary);">Mínimos</div>
+                                    <ul class="text-sm space-y-1" style="color: var(--text-secondary);">
+                                        <li><strong>SO:</strong> Windows 10 64-bit</li>
+                                        <li><strong>CPU:</strong> Intel Core i5-4460</li>
+                                        <li><strong>RAM:</strong> 8 GB</li>
+                                        <li><strong>GPU:</strong> NVIDIA GTX 960 / AMD R9 280</li>
+                                        <li><strong>Espacio:</strong> 50 GB</li>
+                                    </ul>
+                                </div>
+                                <div class="p-4 rounded-lg" style="background-color: var(--bg-tertiary);">
+                                    <div class="font-medium mb-2" style="color: var(--text-primary);">Recomendados</div>
+                                    <ul class="text-sm space-y-1" style="color: var(--text-secondary);">
+                                        <li><strong>SO:</strong> Windows 10/11 64-bit</li>
+                                        <li><strong>CPU:</strong> Intel Core i7-8700K</li>
+                                        <li><strong>RAM:</strong> 16 GB</li>
+                                        <li><strong>GPU:</strong> NVIDIA GTX 1070 / AMD RX Vega 56</li>
+                                        <li><strong>Espacio:</strong> 50 GB SSD</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Videos/Guías embebidos -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3" style="color: var(--text-primary);">🎬 Guías y gameplay</h3>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="aspect-video rounded-lg overflow-hidden" style="background-color: var(--bg-tertiary);">
+                                    <div class="w-full h-full flex items-center justify-center cursor-pointer hover:bg-opacity-80 transition" onclick="loadYouTubeEmbed(this, '${game.title}')">
+                                        <div class="text-center">
+                                            <i class="fab fa-youtube text-4xl text-red-600 mb-2"></i>
+                                            <p class="text-sm" style="color: var(--text-muted);">Click para cargar video</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="aspect-video rounded-lg overflow-hidden" style="background-color: var(--bg-tertiary);">
+                                    <div class="w-full h-full flex items-center justify-center cursor-pointer hover:bg-opacity-80 transition" onclick="loadYouTubeEmbed(this, '${game.title} guide')">
+                                        <div class="text-center">
+                                            <i class="fab fa-youtube text-4xl text-red-600 mb-2"></i>
+                                            <p class="text-sm" style="color: var(--text-muted);">Click para cargar guía</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Juegos similares -->
+                        <div>
+                            <h3 class="font-semibold mb-3" style="color: var(--text-primary);">🎮 Juegos similares</h3>
+                            <div id="similarGames" class="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
+                                <!-- Se carga dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // FUNCIONES DE INTERFAZ
+        // ============================================
+        
+        let currentTab = 'free';
+        let currentSection = 'home';
+        let filteredFreeGames = [...FREE_GAMES_DATABASE];
+        let filteredPaidGames = [...PAID_GAMES_DATABASE];
+        
+        function init() {
+            renderFreeGames();
+            renderPaidGames();
+            loadOffers();
+            loadRankings();
+            loadArgentinaGames();
+            updateSearchSuggestions();
+            simulatePriceUpdates();
+        }
+        
+        function renderFreeGames() {
+            const grid = document.getElementById('freeGamesGrid');
+            grid.innerHTML = filteredFreeGames.map(game => renderFreeGameCard(game)).join('');
+            document.getElementById('freeCount').textContent = filteredFreeGames.length;
+        }
+        
+        function renderPaidGames() {
+            const grid = document.getElementById('paidGamesGrid');
+            grid.innerHTML = filteredPaidGames.map(game => renderPaidGameCard(game)).join('');
+            document.getElementById('paidCount').textContent = filteredPaidGames.length;
+        }
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            const freeSection = document.getElementById('freeGamesSection');
+            const paidSection = document.getElementById('paidGamesSection');
+            const freeTab = document.getElementById('tabFree');
+            const paidTab = document.getElementById('tabPaid');
+            
+            if (tab === 'free') {
+                freeSection.classList.remove('hidden');
+                paidSection.classList.add('hidden');
+                freeTab.style.borderColor = 'var(--accent-red)';
+                freeTab.style.color = 'var(--text-primary)';
+                paidTab.style.borderColor = 'transparent';
+                paidTab.style.color = 'var(--text-secondary)';
+            } else {
+                freeSection.classList.add('hidden');
+                paidSection.classList.remove('hidden');
+                paidTab.style.borderColor = 'var(--accent-red)';
+                paidTab.style.color = 'var(--text-primary)';
+                freeTab.style.borderColor = 'transparent';
+                freeTab.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        function showSection(section) {
+            currentSection = section;
+            const sections = ['heroSection', 'freeGamesSection', 'paidGamesSection', 'offersSection', 'argentinaSection', 'rankingSection'];
+            const filtersPanel = document.getElementById('filtersPanel');
+            const tabs = document.querySelector('.flex.gap-4.mb-8.border-b');
+            
+            // Hide all sections first
+            sections.forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+            
+            if (section === 'home') {
+                document.getElementById('heroSection').classList.remove('hidden');
+                filtersPanel.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                switchTab('free');
+                document.getElementById('freeGamesSection').classList.remove('hidden');
+            } else if (section === 'free') {
+                document.getElementById('heroSection').classList.remove('hidden');
+                filtersPanel.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                switchTab('free');
+                document.getElementById('freeGamesSection').classList.remove('hidden');
+            } else if (section === 'paid') {
+                document.getElementById('heroSection').classList.remove('hidden');
+                filtersPanel.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                switchTab('paid');
+                document.getElementById('paidGamesSection').classList.remove('hidden');
+            } else if (section === 'offers') {
+                document.getElementById('heroSection').classList.add('hidden');
+                filtersPanel.classList.add('hidden');
+                tabs.classList.add('hidden');
+                document.getElementById('offersSection').classList.remove('hidden');
+            } else if (section === 'argentina') {
+                document.getElementById('heroSection').classList.add('hidden');
+                filtersPanel.classList.add('hidden');
+                tabs.classList.add('hidden');
+                document.getElementById('argentinaSection').classList.remove('hidden');
+            } else if (section === 'ranking') {
+                document.getElementById('heroSection').classList.add('hidden');
+                filtersPanel.classList.add('hidden');
+                tabs.classList.add('hidden');
+                document.getElementById('rankingSection').classList.remove('hidden');
+            }
+        }
+        
+        function goHome() {
+            showSection('home');
+        }
+        
+        // ============================================
+        // BÚSQUEDA Y FILTROS
+        // ============================================
+        
+        const popularSearches = ['Elden Ring', 'Hollow Knight', 'Hades', 'Celeste', 'RPG gratis', 'Juegos argentinos', 'Ofertas Steam'];
+        
+        function handleSearch(query) {
+            if (query.length < 2) {
+                updateSearchSuggestions();
+                return;
+            }
+            
+            const allGames = [...FREE_GAMES_DATABASE, ...PAID_GAMES_DATABASE];
+            const results = allGames.filter(game => 
+                game.title.toLowerCase().includes(query.toLowerCase()) ||
+                game.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())) ||
+                game.developer.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            const suggestionsList = document.getElementById('suggestionsList');
+            suggestionsList.innerHTML = results.slice(0, 6).map(game => `
+                <div class="search-suggestion flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition hover:bg-opacity-10" 
+                     style="background-color: transparent;" 
+                     onmouseover="this.style.backgroundColor='var(--bg-tertiary)'" 
+                     onmouseout="this.style.backgroundColor='transparent'"
+                     onclick="openGameFromSearch('${game.id}')">
+                    <img src="${game.image}" class="w-10 h-10 rounded object-cover">
+                    <div>
+                        <div class="font-medium" style="color: var(--text-primary);">${game.title}</div>
+                        <div class="text-xs" style="color: var(--text-muted);">${game.developer}</div>
+                    </div>
+                </div>
+            `).join('') || '<div class="px-3 py-4 text-center" style="color: var(--text-muted);">No se encontraron resultados</div>';
+        }
+        
+        function updateSearchSuggestions() {
+            const suggestionsList = document.getElementById('suggestionsList');
+            suggestionsList.innerHTML = popularSearches.map(term => `
+                <div class="search-suggestion px-3 py-2 rounded-lg cursor-pointer transition"
+                     style="color: var(--text-secondary);"
+                     onmouseover="this.style.backgroundColor='var(--bg-tertiary)'" 
+                     onmouseout="this.style.backgroundColor='transparent'"
+                     onclick="document.getElementById('mainSearch').value='${term}'; handleSearch('${term}');">
+                    <i class="fas fa-search text-xs mr-2" style="color: var(--text-muted);"></i>
+                    ${term}
+                </div>
+            `).join('');
+        }
+        
+        function showSearchSuggestions() {
+            document.getElementById('searchSuggestions').classList.remove('hidden');
+        }
+        
+        function hideSearchSuggestions() {
+            document.getElementById('searchSuggestions').classList.add('hidden');
+        }
+        
+        function openGameFromSearch(id) {
+            hideSearchSuggestions();
+            const freeGame = FREE_GAMES_DATABASE.find(g => g.id === id);
+            if (freeGame) {
+                openGameDetail('free', id);
+            } else {
+                openGameDetail('paid', id);
+            }
+        }
+        
+        function filterByTag(tag) {
+            const searchInput = document.getElementById('mainSearch');
+            searchInput.value = tag;
+            applyFilters();
+        }
+        
+        function applyFilters() {
+            const genre = document.getElementById('filterGenre').value;
+            const playerType = document.getElementById('filterPlayerType').value;
+            const players = document.getElementById('filterPlayers').value;
+            const specs = document.getElementById('filterSpecs').value;
+            const language = document.getElementById('filterLanguage').value;
+            const sort = document.getElementById('filterSort').value;
+            const searchQuery = document.getElementById('mainSearch').value.toLowerCase();
+            
+            // Filter free games
+            filteredFreeGames = FREE_GAMES_DATABASE.filter(game => {
+                if (genre && !game.genre.includes(genre)) return false;
+                if (playerType && game.playerType !== playerType) return false;
+                if (players && game.players !== players) return false;
+                if (specs && game.specs !== specs) return false;
+                if (language && game.language !== language) return false;
+                if (searchQuery && !game.title.toLowerCase().includes(searchQuery) && 
+                    !game.tags.some(t => t.toLowerCase().includes(searchQuery))) return false;
+                return true;
+            });
+            
+            // Filter paid games
+            filteredPaidGames = PAID_GAMES_DATABASE.filter(game => {
+                if (genre && !game.genre.includes(genre)) return false;
+                if (playerType && game.playerType !== playerType) return false;
+                if (players && game.players !== players) return false;
+                if (specs && game.specs !== specs) return false;
+                if (language && game.language !== language) return false;
+                if (searchQuery && !game.title.toLowerCase().includes(searchQuery) && 
+                    !game.tags.some(t => t.toLowerCase().includes(searchQuery))) return false;
+                return true;
+            });
+            
+            // Sort
+            const sortFn = {
+                'name': (a, b) => a.title.localeCompare(b.title),
+                'rating': (a, b) => b.rating - a.rating,
+                'release': (a, b) => b.year - a.year,
+                'price-asc': (a, b) => {
+                    if (!a.stores) return -1;
+                    if (!b.stores) return 1;
+                    return findBestPrice(a.stores).price - findBestPrice(b.stores).price;
+                },
+                'price-desc': (a, b) => {
+                    if (!a.stores) return 1;
+                    if (!b.stores) return -1;
+                    return findBestPrice(b.stores).price - findBestPrice(a.stores).price;
+                },
+                'discount': (a, b) => {
+                    if (!a.stores) return 1;
+                    if (!b.stores) return -1;
+                    return findBestPrice(b.stores).discount - findBestPrice(a.stores).discount;
+                }
+            };
+            
+            if (sortFn[sort]) {
+                filteredFreeGames.sort(sortFn[sort]);
+                filteredPaidGames.sort(sortFn[sort]);
+            }
+            
+            renderFreeGames();
+            renderPaidGames();
+        }
+        
+        function clearFilters() {
+            document.getElementById('filterGenre').value = '';
+            document.getElementById('filterPlayerType').value = '';
+            document.getElementById('filterPlayers').value = '';
+            document.getElementById('filterSpecs').value = '';
+            document.getElementById('filterLanguage').value = '';
+            document.getElementById('filterSort').value = 'relevance';
+            document.getElementById('mainSearch').value = '';
+            
+            filteredFreeGames = [...FREE_GAMES_DATABASE];
+            filteredPaidGames = [...PAID_GAMES_DATABASE];
+            
+            renderFreeGames();
+            renderPaidGames();
+        }
+        
+        function toggleAdvancedFilters() {
+            const panel = document.getElementById('advancedFilters');
+            const icon = document.getElementById('advFiltersIcon');
+            panel.classList.toggle('hidden');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+        
+        // ============================================
+        // MODAL DE DETALLE
+        // ============================================
+        
+        function openGameDetail(type, id) {
+            const game = type === 'free' 
+                ? FREE_GAMES_DATABASE.find(g => g.id === id)
+                : PAID_GAMES_DATABASE.find(g => g.id === id);
+            
+            if (!game) return;
+            
+            const modal = document.getElementById('gameDetailModal');
+            const content = document.getElementById('gameDetailContent');
+            
+            content.innerHTML = renderGameDetail(type, game);
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load similar games
+            loadSimilarGames(game);
+        }
+        
+        function closeGameModal() {
+            document.getElementById('gameDetailModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        function loadSimilarGames(currentGame) {
+            const allGames = [...FREE_GAMES_DATABASE, ...PAID_GAMES_DATABASE];
+            const similar = allGames.filter(g => 
+                g.id !== currentGame.id && 
+                g.genre.some(genre => currentGame.genre.includes(genre))
+            ).slice(0, 6);
+            
+            const container = document.getElementById('similarGames');
+            if (container) {
+                container.innerHTML = similar.map(game => `
+                    <div class="flex-shrink-0 w-40 cursor-pointer" onclick="closeGameModal(); setTimeout(() => openGameDetail('${game.stores ? 'paid' : 'free'}', '${game.id}'), 100)">
+                        <img src="${game.image}" class="w-full h-24 object-cover rounded-lg mb-2">
+                        <div class="text-sm font-medium line-clamp-1" style="color: var(--text-primary);">${game.title}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function loadYouTubeEmbed(element, searchQuery) {
+            // In production, this would use YouTube API to find relevant videos
+            element.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center" style="color: var(--text-muted);">
+                    <div class="text-center">
+                        <i class="fas fa-video text-2xl mb-2"></i>
+                        <p class="text-sm">Buscar "${searchQuery}" en YouTube</p>
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}" 
+                           target="_blank" 
+                           class="text-xs mt-2 inline-block px-3 py-1 rounded" 
+                           style="background-color: var(--accent-red); color: white;">
+                            Abrir en YouTube
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // SECCIONES ESPECIALES
+        // ============================================
+        
+        function loadOffers() {
+            // Weekly free games (simulated)
+            const weeklyFree = [
+                { title: 'Mystery Game', store: 'Epic Games', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg', url: 'https://store.epicgames.com' },
+                { title: 'Indie Gem', store: 'GOG', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg', url: 'https://www.gog.com' }
+            ];
+            
+            document.getElementById('weeklyFreeGames').innerHTML = weeklyFree.map(game => `
+                <a href="${game.url}" target="_blank" class="block rounded-lg overflow-hidden transition hover:scale-105" style="background-color: var(--bg-secondary);">
+                    <img src="${game.image}" class="w-full h-32 object-cover">
+                    <div class="p-3">
+                        <span class="text-xs px-2 py-0.5 rounded text-white mb-2 inline-block" style="background-color: var(--accent-green);">GRATIS</span>
+                        <div class="font-medium" style="color: var(--text-primary);">${game.title}</div>
+                        <div class="text-xs" style="color: var(--text-muted);">En ${game.store}</div>
+                    </div>
+                </a>
+            `).join('');
+            
+            // Best deals
+            const bestDeals = PAID_GAMES_DATABASE
+                .filter(g => g.stores.some(s => s.discount > 0))
+                .sort((a, b) => {
+                    const aDiscount = Math.max(...a.stores.map(s => s.discount));
+                    const bDiscount = Math.max(...b.stores.map(s => s.discount));
+                    return bDiscount - aDiscount;
+                })
+                .slice(0, 8);
+            
+            document.getElementById('bestDeals').innerHTML = bestDeals.map(game => {
+                const bestStore = findBestPrice(game.stores);
+                const priceInfo = calculateArgentinePrice(bestStore.price, bestStore.discount);
+                return `
+                    <div class="rounded-lg overflow-hidden cursor-pointer transition hover:scale-105" style="background-color: var(--bg-secondary);" onclick="openGameDetail('paid', '${game.id}')">
+                        <div class="relative">
+                            <img src="${game.image}" class="w-full h-32 object-cover">
+                            <span class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold text-white bg-red-600">-${bestStore.discount}%</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="font-medium line-clamp-1" style="color: var(--text-primary);">${game.title}</div>
+                            <div class="font-bold" style="color: #22c55e;">${priceInfo.formatted}</div>
+                            <div class="text-xs" style="color: var(--text-muted);">en ${bestStore.name}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function loadArgentinaGames() {
+            const argGames = PAID_GAMES_DATABASE.filter(g => g.isArgentine);
+            document.getElementById('argentinaGamesGrid').innerHTML = argGames.map(game => renderPaidGameCard(game)).join('');
+        }
+        
+        function loadRankings() {
+            // Most searched (simulated)
+            const mostSearched = [
+                { rank: 1, title: 'Elden Ring', searches: 15420 },
+                { rank: 2, title: 'Baldur\'s Gate 3', searches: 12350 },
+                { rank: 3, title: 'Hollow Knight', searches: 9870 },
+                { rank: 4, title: 'Hades', searches: 8540 },
+                { rank: 5, title: 'Celeste', searches: 7230 }
+            ];
+            
+            document.getElementById('mostSearched').innerHTML = mostSearched.map(item => `
+                <div class="flex items-center gap-4 p-3 rounded-lg" style="background-color: var(--bg-tertiary);">
+                    <span class="text-2xl font-bold" style="color: var(--accent-red);">#${item.rank}</span>
+                    <div class="flex-1">
+                        <div class="font-medium" style="color: var(--text-primary);">${item.title}</div>
+                        <div class="text-xs" style="color: var(--text-muted);">${item.searches.toLocaleString()} búsquedas esta semana</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Best value
+            const bestValue = PAID_GAMES_DATABASE
+                .map(game => {
+                    const bestStore = findBestPrice(game.stores);
+                    const priceInfo = calculateArgentinePrice(bestStore.price, bestStore.discount);
+                    return { ...game, valueScore: game.rating / (priceInfo.final / 1000) };
+                })
+                .sort((a, b) => b.valueScore - a.valueScore)
+                .slice(0, 5);
+            
+            document.getElementById('bestValue').innerHTML = bestValue.map((game, i) => {
+                const bestStore = findBestPrice(game.stores);
+                const priceInfo = calculateArgentinePrice(bestStore.price, bestStore.discount);
+                return `
+                    <div class="flex items-center gap-4 p-3 rounded-lg cursor-pointer" style="background-color: var(--bg-tertiary);" onclick="openGameDetail('paid', '${game.id}')">
+                        <span class="text-2xl font-bold" style="color: var(--accent-green);">#${i + 1}</span>
+                        <img src="${game.image}" class="w-12 h-12 rounded object-cover">
+                        <div class="flex-1">
+                            <div class="font-medium" style="color: var(--text-primary);">${game.title}</div>
+                            <div class="text-xs" style="color: var(--text-muted);">⭐ ${game.rating} • ${priceInfo.formatted}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ============================================
+        // CONFIGURACIÓN Y PREFERENCIAS
+        // ============================================
+        
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('themeIcon');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+        
+        function changeRegion(region) {
+            CONFIG.region = region || document.getElementById('regionSelector').value;
+            renderPaidGames();
+            loadOffers();
+        }
+        
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+        
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+        
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+        
+        // ============================================
+        // SIMULACIÓN DE ACTUALIZACIONES EN TIEMPO REAL
+        // ============================================
+        
+        function simulatePriceUpdates() {
+            // Simulate price API updates every 30 seconds
+            setInterval(() => {
+                // Slight random variations to simulate live data
+                CONFIG.dollarBlue = 1250 + Math.floor(Math.random() * 20 - 10);
+                document.getElementById('currentDollarRate').textContent = `USD Blue: $${CONFIG.dollarBlue.toLocaleString()}`;
+                document.getElementById('lastUpdate').textContent = 'hace unos segundos';
+                
+                // Re-render to show updated prices
+                renderPaidGames();
+            }, 30000);
+            
+            // Update "last update" text
+            setInterval(() => {
+                const lastUpdate = document.getElementById('lastUpdate');
+                const current = lastUpdate.textContent;
+                if (current.includes('segundos')) {
+                    lastUpdate.textContent = 'hace 1 min';
+                } else if (current.includes('1 min')) {
+                    lastUpdate.textContent = 'hace 2 min';
+                } else if (current.includes('2 min')) {
+                    lastUpdate.textContent = 'hace 3 min';
+                } else if (current.includes('3 min')) {
+                    lastUpdate.textContent = 'hace 4 min';
+                } else if (current.includes('4 min')) {
+                    lastUpdate.textContent = 'hace 5 min';
+                }
+            }, 60000);
+        }
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        // Load saved theme preference
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+        }
+        
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeGameModal();
+                closeLoginModal();
+            }
+        });
+        
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Also run init immediately in case DOM is already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            init();
+        }
+        
+        /* ============================================
+         * NOTAS PARA PRODUCCIÓN:
+         * ============================================
+         * 
+         * 1. APIs A IMPLEMENTAR:
+         *    - Steam Web API: https://steamcommunity.com/dev
+         *    - IsThereAnyDeal API: https://isthereanydeal.com/dev/
+         *    - RAWG API: https://rawg.io/apidocs
+         *    - CheapShark API: https://www.cheapshark.com/api
+         *    - BCRA API para cotización oficial
+         *    - Ámbito Financiero scraping para dólar blue
+         * 
+         * 2. BACKEND NECESARIO:
+         *    - Node.js + Express o similar
+         *    - Base de datos (PostgreSQL/MongoDB)
+         *    - Redis para caché de precios
+         *    - Cron jobs para actualizar precios cada 5 min
+         *    - Sistema de afiliados con tracking
+         * 
+         * 3. ADSENSE:
+         *    - Reemplazar los placeholders con código real
+         *    - data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         *    - data-ad-slot="XXXXXXXXXX"
+         * 
+         * 4. AUTENTICACIÓN:
+         *    - Firebase Auth o similar para Google/Discord
+         *    - JWT para sesiones
+         * 
+         * 5. SISTEMA DE ALERTAS:
+         *    - SendGrid o similar para emails
+         *    - Web Push Notifications
+         * ============================================ */
+    </script>
+</body>
+</html>
